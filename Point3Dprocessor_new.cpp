@@ -81,6 +81,22 @@ int main(int argc, char *argv[])
         cout<<distance_string[i]<<endl;
     }
 
+        
+    for (int i = 0; i < point_string.size(); i++)
+    {
+        // string->char *
+        char *s_input = (char *)point_string[2].c_str();
+        const char * split = "，";
+        // 以‘，’为分隔符拆分字符串
+        char *p = strtok(s_input, split);
+    }
+    
+    // string->char *
+    char *s_input = (char *)point_string[2].c_str();
+    const char * split = "，";
+    // 以‘，’为分隔符拆分字符串
+    char *p = strtok(s_input, split);
+        
     
     // for (int i = 0; i < string_point_dist.size(); i++)
     // {
