@@ -13,7 +13,7 @@ using namespace std;
 
 double get_pointDistance(vector<double> point_1, vector<double> point_2);
 vector<double> get_radomPoint(vector<double> point, double scale);
-vector<vector<double>> get_distMatrix_from_ponits(vector<vector<double>> point, int row, int rank);
+vector<vector<double>> get_distMatrix_from_ponits(vector<vector<double>> point, int point_number);
 double get_error_from_twoMarix(vector<vector<double>> distMtrix_1, vector<vector<double>> distMtrix_2);
 vector<vector<double>> copy_points(vector<vector<double>> copied_points);
 
@@ -196,105 +196,155 @@ int main(int argc, char *argv[])
     // 1.根据所给的坐标计算所有点两两之间的距离，生成坐标点两两之间的距离矩阵
     vector<vector<double>> distMatrix_origin(10, vector<double>(10));
 
-    distMatrix_origin = get_distMatrix_from_ponits(point, distMatrix_origin.size(), distMatrix_origin[0].size());
+    distMatrix_origin = get_distMatrix_from_ponits(point, distMatrix_origin.size());
     
     // 2.计算所给的距离与计算距离的差值的绝对值的总和
     double lowestError = 0;
 
     lowestError = get_error_from_twoMarix(distance_matrix, distMatrix_origin);
-    cout<<lowestError<<endl;
+    cout<<"lowesterror"<<lowestError<<endl;
 
 
     //4生成包含高斯噪声的坐标点
-    vector<vector<double>> point_local(10, vector<double>(3));
+    // vector<vector<double>> point_local(10, vector<double>(3));
 
-    double scale = 20;
-    for (int i = 0; i < point.size(); i++)
-    {
-        point_local[i] = get_radomPoint(point[i], scale);
-    }
+    // double scale = 20;
+    // for (int i = 0; i < point.size(); i++)
+    // {
+    //     point_local[i] = get_radomPoint(point[i], scale);
+    // }
     
     // 5.计算高斯随机生成点之间的距离矩阵，计算方法与原始点之间的距离矩阵一致
-    vector<vector<double>> distMatrix_local(10, vector<double>(10));
+    // vector<vector<double>> distMatrix_local(10, vector<double>(10));
 
-    distMatrix_local = get_distMatrix_from_ponits(point_local, distMatrix_local.size(), distMatrix_local[0].size());
+    // distMatrix_local = get_distMatrix_from_ponits(point_local, distMatrix_local.size());
 
 
     //6 计算dist_origin与dist_local的绝对差值
-    double error = 0;
-    error = get_error_from_twoMarix(distMatrix_local, distMatrix_origin);
+    // double error = 0;
+    // error = get_error_from_twoMarix(distMatrix_local, distMatrix_origin);
     // cout<<error<<endl;
 
+    bool flag = false;
     for (int total_count = 0; true; total_count++)
     {
-        double local_error = lowestError;
         vector<vector<double>> pts(10, vector<double>(3));
-        scale = 20;
+        pts = point;
+        
+        double scale = 20;
+        double local_error = lowestError;
 
         for (int itt = 0; true; itt++)
         {
            bool improved = false;
+
            for (int itt2 = 0; itt2 < 1000; itt2++)
            {
                for (int i = 0; i < pts.size(); i++)
                 {
-                    pts[i] = get_radomPoint(point[i], scale); //point或者point_local
+                    pts[i] = get_radomPoint(pts[i], scale); //point或者point_local, pts
+                    // cout<<pts[i][0];
                 }
 
                 double error = 0;
-                error = get_error_from_twoMarix(distance_matrix, get_distMatrix_from_ponits(pts, 10, 3));
+                error = get_error_from_twoMarix(distance_matrix, get_distMatrix_from_ponits(pts, 10));
 
                 if (error < local_error)
                 {
-                    pts = point_local;
-
+                    // pts = point_local; //不确定是哪一个point
                     improved = true;
                     local_error = error;
 
                     if (local_error < lowestError)
                     {
-                        point = point_local;
-                        
+                        point = pts;
                         lowestError = local_error;  
 
                     }else{
-                        point_local = point;
-
+                        pts = point;
                         local_error = lowestError;
                     }
-                    
-                    
-                }
-
-                if (!improved)
-                {
-                    scale *= 0.999;
-                }
-
-                if ((total_count % 100) == 0)
-                {
-                    cout<<"Current error: "<<local_error<<" ("<<lowestError<<") "<<endl;
-                    cout<<"Scale: "<<scale<<endl;
-                    if (scale < 0.01)
-                    {
-                        break;
-                    }
-                    
-                }
                 
-                if (local_error > 1.2*lowestError)
-                {
-                    for (int i=0; i<point.size(); i++)
-                        pts = point;
-                    local_error = lowestError;
                 }
-        
         
             }
+
+            if (!improved)
+            {
+                scale *= 0.999;
+            }
+
+            if ((total_count % 100) == 0)
+            {
+                cout<<"Current error: "<<local_error<<" ("<<lowestError<<") "<<endl;
+                cout<<"Scale: "<<scale<<endl;
+                if (scale < 0.01)
+                {
+                    flag = true;
+                    break;
+                }
+                
+            }
+            
+            if (local_error > 1.2*lowestError)
+            {
+                pts = point;
+                local_error = lowestError;
+            }
+        
         }
-           
+
+        if (flag)
+        {
+            break;
+        }     
+    }
+
+
+    cout<<"Final points (with constraints)"<<endl;
+    for (int i = 0; i < point.size(); i++)
+    {
+        cout<<"[ ";
+        for (int j = 0; j < point[i].size(); j++)
+        {
+            cout<<point[i][j]<<"\t";
+        }
+        cout<<" ]"<<endl;
+        
+    }
+
+    cout<<"\n\nOrigin Distance Matrix"<<endl;
+    for (int i = 0; i < distance_matrix.size(); i++)
+    {
+        for (int j = 0; j < distance_matrix[i].size(); j++)
+        {
+            cout<<distance_matrix[i][j]<<"\t";
+        }
+        cout<<endl;
     }
     
+    cout<<"\n\nComputed Distance Matrix"<<endl;
+    vector<vector<double>> distMatrix_final(10, vector<double>(10));
+    distMatrix_final = get_distMatrix_from_ponits(point, 10);
+    for (int i = 0; i < distMatrix_final.size(); i++)
+    {
+        for (int j = 0; j < distMatrix_final[i].size(); j++)
+        {
+            cout<<distMatrix_final[i][j]<<"\t";
+        }
+        cout<<endl;
+    }
+
+    double maxAbsError = 0;
+    for (int i=0; i<distance_matrix.size(); i++)
+    {
+        for (int j = 0; j < distance_matrix[i].size(); j++)
+        {
+            maxAbsError = max(maxAbsError, abs(distance_matrix[i][j]- distMatrix_final[i][j]));
+        }
+        
+    }
+    cout<<"\n\nMax absolute error:  "<<maxAbsError<<endl;
     
     return 0;
 
@@ -330,13 +380,13 @@ vector<double> get_radomPoint(vector<double> point, double scale)
 }
 
 
-vector<vector<double>> get_distMatrix_from_ponits(vector<vector<double>> point, int point_number, int point_dimension)
+vector<vector<double>> get_distMatrix_from_ponits(vector<vector<double>> point, int point_number)
 {
-    vector<vector<double>> dist_matrix(point_number, vector<double>(point_dimension));
+    vector<vector<double>> dist_matrix(point_number, vector<double>(point_number));
 
     for (int i = 0; i < point_number; i++)
     {
-        for (int j = i+1; j < point_dimension; j++)
+        for (int j = i+1; j < point_number; j++)
         {
             dist_matrix[i][j] = get_pointDistance(point[i], point[j]);
             dist_matrix[j][i] = dist_matrix[i][j]; //对阵矩阵赋值
