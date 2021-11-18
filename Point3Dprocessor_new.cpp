@@ -1,33 +1,21 @@
 #include <iostream>
 #include <fstream>
-
 #include <string>
-#include <string.h>
 #include <vector>
 #include <sstream>
 #include <algorithm>
+#include <cmath>
+#include <random>
+#include<chrono>
 
 using namespace std;
 
-vector<string> subStrToVec(string str,char sep)
-{
-    vector<string> vecArr;
-    int flagSub = 0;
-    for(int i=0;i<str.length();i++){
-        if(str[i] == sep){
-            string temp = str.substr(flagSub,i-flagSub);
-            vecArr.push_back(temp);
-            flagSub = i+1;
-        }else if (i = str.length() - 1)
-        {
-            string temp = str.substr(flagSub,i-flagSub);
-            vecArr.push_back(temp);
-        }
-        
-    }
-    return vecArr;
-}
 
+double get_pointDistance(vector<double> point_1, vector<double> point_2);
+vector<double> get_radomPoint(vector<double> point, double scale);
+vector<vector<double>> get_distMatrix_from_ponits(vector<vector<double>> point, int row, int rank);
+double get_error_from_twoMarix(vector<vector<double>> distMtrix_1, vector<vector<double>> distMtrix_2);
+vector<vector<double>> copy_points(vector<vector<double>> copied_points);
 
 
 int main(int argc, char *argv[])
@@ -43,7 +31,7 @@ int main(int argc, char *argv[])
     inPoint_Distance_data.open(filename);
     if (inPoint_Distance_data.fail())
     {
-        cout<<"Can not open the fail, check the filename!";
+        cout<<"Can not open the file, check the filename!!!";
     }else{
         cout<<"Data has read!"<<endl;
     }
@@ -135,9 +123,9 @@ int main(int argc, char *argv[])
             point_count++;
             // cout<<point_temp_sec[i][j]<<" ";
             point[i][j] = stod(point_temp_sec[i][j]);
-            cout<<point[i][j]<<" ";
+            // cout<<point[i][j]<<" ";
         }
-        cout<<endl;
+        // cout<<endl;
         // cout<<point_temp[i]<<endl;
     }
 
@@ -187,16 +175,208 @@ int main(int argc, char *argv[])
         
     }
 
-    for (int i = 0; i < distance_matrix.size(); i++)
-    {
-        for (int j = 0; j < distance_matrix[i].size(); j++)
-        {
-            cout<<distance_matrix[i][j]<<"\t";
-        }
-        cout<<endl;
+    // for (int i = 0; i < distance_matrix.size(); i++)
+    // {
+    //     for (int j = 0; j < distance_matrix[i].size(); j++)
+    //     {
+    //         cout<<distance_matrix[i][j]<<"\t";
+    //     }
+    //     cout<<endl;
         
+    // }
+
+
+
+
+
+
+
+    //算法的开始：
+
+    // 1.根据所给的坐标计算所有点两两之间的距离，生成坐标点两两之间的距离矩阵
+    vector<vector<double>> distMatrix_origin(10, vector<double>(10));
+
+    distMatrix_origin = get_distMatrix_from_ponits(point, distMatrix_origin.size(), distMatrix_origin[0].size());
+    
+    // 2.计算所给的距离与计算距离的差值的绝对值的总和
+    double lowestError = 0;
+
+    lowestError = get_error_from_twoMarix(distance_matrix, distMatrix_origin);
+    cout<<lowestError<<endl;
+
+
+    //4生成包含高斯噪声的坐标点
+    vector<vector<double>> point_local(10, vector<double>(3));
+
+    double scale = 20;
+    for (int i = 0; i < point.size(); i++)
+    {
+        point_local[i] = get_radomPoint(point[i], scale);
+    }
+    
+    // 5.计算高斯随机生成点之间的距离矩阵，计算方法与原始点之间的距离矩阵一致
+    vector<vector<double>> distMatrix_local(10, vector<double>(10));
+
+    distMatrix_local = get_distMatrix_from_ponits(point_local, distMatrix_local.size(), distMatrix_local[0].size());
+
+
+    //6 计算dist_origin与dist_local的绝对差值
+    double error = 0;
+    error = get_error_from_twoMarix(distMatrix_local, distMatrix_origin);
+    // cout<<error<<endl;
+
+    for (int total_count = 0; true; total_count++)
+    {
+        double local_error = lowestError;
+        vector<vector<double>> pts(10, vector<double>(3));
+        scale = 20;
+
+        for (int itt = 0; true; itt++)
+        {
+           bool improved = false;
+           for (int itt2 = 0; itt2 < 1000; itt2++)
+           {
+               for (int i = 0; i < pts.size(); i++)
+                {
+                    pts[i] = get_radomPoint(point[i], scale); //point或者point_local
+                }
+
+                double error = 0;
+                error = get_error_from_twoMarix(distance_matrix, get_distMatrix_from_ponits(pts, 10, 3));
+
+                if (error < local_error)
+                {
+                    pts = point_local;
+
+                    improved = true;
+                    local_error = error;
+
+                    if (local_error < lowestError)
+                    {
+                        point = point_local;
+                        
+                        lowestError = local_error;  
+
+                    }else{
+                        point_local = point;
+
+                        local_error = lowestError;
+                    }
+                    
+                    
+                }
+
+                if (!improved)
+                {
+                    scale *= 0.999;
+                }
+
+                if ((total_count % 100) == 0)
+                {
+                    cout<<"Current error: "<<local_error<<" ("<<lowestError<<") "<<endl;
+                    cout<<"Scale: "<<scale<<endl;
+                    if (scale < 0.01)
+                    {
+                        break;
+                    }
+                    
+                }
+                
+                if (local_error > 1.2*lowestError)
+                {
+                    for (int i=0; i<point.size(); i++)
+                        pts = point;
+                    local_error = lowestError;
+                }
+        
+        
+            }
+        }
+           
     }
     
     
     return 0;
+
 }
+
+
+double get_pointDistance(vector<double> point_1, vector<double> point_2)
+{
+    double dist = pow(pow((point_1[0] - point_2[0]),2)
+     + pow((point_1[1] - point_2[1]),2)
+      + pow((point_1[2] - point_2[2]),2), 0.5);
+    
+    return dist;
+}
+
+
+vector<double> get_radomPoint(vector<double> point, double scale)
+{
+    double add_number;
+    // default_random_engine random_engine;
+    normal_distribution<double> random_number(0, scale);
+
+    for (int i = 0; i < point.size(); i++)
+    {
+        // 从epoch（1970年1月1日00:00:00 UTC）开始经过的纳秒数，unsigned类型会截断这个值
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        default_random_engine random_engine(seed);
+        add_number = random_number(random_engine);
+        point[i] += add_number;
+    }
+    
+    return point;
+}
+
+
+vector<vector<double>> get_distMatrix_from_ponits(vector<vector<double>> point, int point_number, int point_dimension)
+{
+    vector<vector<double>> dist_matrix(point_number, vector<double>(point_dimension));
+
+    for (int i = 0; i < point_number; i++)
+    {
+        for (int j = i+1; j < point_dimension; j++)
+        {
+            dist_matrix[i][j] = get_pointDistance(point[i], point[j]);
+            dist_matrix[j][i] = dist_matrix[i][j]; //对阵矩阵赋值
+        }
+        
+    }
+
+    return dist_matrix;
+}
+
+
+double get_error_from_twoMarix(vector<vector<double>> distMtrix_1, vector<vector<double>> distMtrix_2)
+{
+    double error = 0;
+    
+    for (int i = 0; i < distMtrix_1.size(); i++)
+    {
+        for (int j = i+1; j < distMtrix_1[i].size(); j++)
+        {
+            error += abs(distMtrix_1[i][j] - distMtrix_2[i][j]);
+            // cout<<error<<endl;
+        }
+    }
+
+    return error;
+}
+
+
+vector<vector<double>> copy_points(vector<vector<double>> copied_points)
+{
+    vector<vector<double>> points(copied_points.size(),vector<double>(copied_points[0].size()));
+    for (int i = 0; i < copied_points.size(); i++)
+    {
+        for (int j = 0; j < copied_points[i].size(); j++)
+        {
+            points[i][j] = copied_points[i][j];
+        }
+        
+    }
+    
+    return points;
+}
+
