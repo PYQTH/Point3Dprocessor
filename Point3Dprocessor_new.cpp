@@ -226,6 +226,7 @@ int main(int argc, char *argv[])
     // cout<<error<<endl;
 
     bool flag = false;
+    int times = 0;
     for (int total_count = 0; true; total_count++)
     {
         vector<vector<double>> pts(10, vector<double>(3));
@@ -296,6 +297,7 @@ int main(int argc, char *argv[])
 
         if (flag)
         {
+            times = total_count;
             break;
         }     
     }
@@ -345,6 +347,8 @@ int main(int argc, char *argv[])
         
     }
     cout<<"\n\nMax absolute error:  "<<maxAbsError<<endl;
+
+    cout<<"calculation point number:"<<times<<endl;
     
     return 0;
 
