@@ -6,7 +6,8 @@
 #include <algorithm>
 #include <cmath>
 #include <random>
-#include<chrono>
+#include <chrono>
+#include <pthread.h>
 
 using namespace std;
 
@@ -187,10 +188,6 @@ int main(int argc, char *argv[])
 
 
 
-
-
-
-
     //算法的开始：
 
     // 1.根据所给的坐标计算所有点两两之间的距离，生成坐标点两两之间的距离矩阵
@@ -204,29 +201,8 @@ int main(int argc, char *argv[])
     lowestError = get_error_from_twoMarix(distance_matrix, distMatrix_origin);
     cout<<"lowesterror"<<lowestError<<endl;
 
-
-    //4生成包含高斯噪声的坐标点
-    // vector<vector<double>> point_local(10, vector<double>(3));
-
-    // double scale = 20;
-    // for (int i = 0; i < point.size(); i++)
-    // {
-    //     point_local[i] = get_radomPoint(point[i], scale);
-    // }
-    
-    // 5.计算高斯随机生成点之间的距离矩阵，计算方法与原始点之间的距离矩阵一致
-    // vector<vector<double>> distMatrix_local(10, vector<double>(10));
-
-    // distMatrix_local = get_distMatrix_from_ponits(point_local, distMatrix_local.size());
-
-
-    //6 计算dist_origin与dist_local的绝对差值
-    // double error = 0;
-    // error = get_error_from_twoMarix(distMatrix_local, distMatrix_origin);
-    // cout<<error<<endl;
-
     bool flag = false;
-    int times = 0;
+    long long point_number = 0;
     for (int total_count = 0; true; total_count++)
     {
         vector<vector<double>> pts(10, vector<double>(3));
@@ -241,9 +217,10 @@ int main(int argc, char *argv[])
 
            for (int itt2 = 0; itt2 < 1000; itt2++)
            {
+               point_number++;
                for (int i = 0; i < pts.size(); i++)
                 {
-                    pts[i] = get_radomPoint(pts[i], scale); //point或者point_local, pts
+                    pts[i] = get_radomPoint(point[i], scale); //point或者point_local, pts
                     // cout<<pts[i][0];
                 }
 
@@ -292,12 +269,13 @@ int main(int argc, char *argv[])
                 pts = point;
                 local_error = lowestError;
             }
+
+            
         
         }
 
         if (flag)
         {
-            times = total_count;
             break;
         }     
     }
@@ -348,7 +326,7 @@ int main(int argc, char *argv[])
     }
     cout<<"\n\nMax absolute error:  "<<maxAbsError<<endl;
 
-    cout<<"calculation point number:"<<times<<endl;
+    cout<<"calculation point number:"<<point_number<<endl;
     
     return 0;
 
