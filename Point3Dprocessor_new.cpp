@@ -14,6 +14,7 @@ using namespace std;
 
 double get_pointDistance(vector<double> point_1, vector<double> point_2);
 vector<double> get_radomPoint(vector<double> point, double scale);
+vector<double> get_radomInitPoint(vector<double> point, double scale);
 vector<vector<double>> get_distMatrix_from_ponits(vector<vector<double>> point, int point_number);
 double get_error_from_twoMarix(vector<vector<double>> distMtrix_1, vector<vector<double>> distMtrix_2);
 vector<vector<double>> copy_points(vector<vector<double>> copied_points);
@@ -130,6 +131,21 @@ int main(int argc, char *argv[])
         // cout<<point_temp[i]<<endl;
     }
 
+    // 由于A,B,C,D带 * 的0保持不变,把A,B,C,D中的0元素转换为const常数
+    // for (int i = 0; i < 4; i++)
+    // {
+    //     for (int j = 0; j < point[i].size(); j++)
+    //     {
+    //         if (point[i][j] == 0)
+    //         {
+    //             point[i][j] = (double const)0;
+    //         }
+            
+    //     }
+        
+    // }
+    
+
 
     // 4.根据 distance_string向量 读入并得到点的 距离矩阵 distance_matrix
     int distance_count = 0;
@@ -176,30 +192,16 @@ int main(int argc, char *argv[])
         
     }
 
-    // for (int i = 0; i < distance_matrix.size(); i++)
-    // {
-    //     for (int j = 0; j < distance_matrix[i].size(); j++)
-    //     {
-    //         cout<<distance_matrix[i][j]<<"\t";
-    //     }
-    //     cout<<endl;
-        
-    // }
 
-
-
-    //算法的开始：
-
+    //计算过程：
     // 1.根据所给的坐标计算所有点两两之间的距离，生成坐标点两两之间的距离矩阵
     vector<vector<double>> distMatrix_origin(10, vector<double>(10));
-
     distMatrix_origin = get_distMatrix_from_ponits(point, distMatrix_origin.size());
     
     // 2.计算所给的距离与计算距离的差值的绝对值的总和
     double lowestError = 0;
-
     lowestError = get_error_from_twoMarix(distance_matrix, distMatrix_origin);
-    cout<<"lowesterror"<<lowestError<<endl;
+    // cout<<"lowesterror"<<lowestError<<endl;
 
     bool flag = false;
     long long point_number = 0;
@@ -220,8 +222,14 @@ int main(int argc, char *argv[])
                point_number++;
                for (int i = 0; i < pts.size(); i++)
                 {
-                    pts[i] = get_radomPoint(point[i], scale); //point或者point_local, pts
-                    // cout<<pts[i][0];
+                    if (i >= 4)
+                    {
+                        pts[i] = get_radomPoint(point[i], scale);
+                    }else{
+                        pts[i] = get_radomInitPoint(point[i], scale);
+                    }
+                    
+                     
                 }
 
                 double error = 0;
@@ -269,8 +277,6 @@ int main(int argc, char *argv[])
                 pts = point;
                 local_error = lowestError;
             }
-
-            
         
         }
 
@@ -354,10 +360,33 @@ vector<double> get_radomPoint(vector<double> point, double scale)
         // 从epoch（1970年1月1日00:00:00 UTC）开始经过的纳秒数，unsigned类型会截断这个值
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
         default_random_engine random_engine(seed);
-        add_number = random_number(random_engine);
-        point[i] += add_number;
+        add_number = random_number(random_engine); 
+        point[i] += add_number;    
     }
-    
+       
+    return point;
+}
+
+
+vector<double> get_radomInitPoint(vector<double> point, double scale)
+{
+    double add_number;
+    // default_random_engine random_engine;
+    normal_distribution<double> random_number(0, scale);
+
+    for (int i = 0; i < point.size(); i++)
+    {
+        // 从epoch（1970年1月1日00:00:00 UTC）开始经过的纳秒数，unsigned类型会截断这个值
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        default_random_engine random_engine(seed);
+        add_number = random_number(random_engine); 
+        if (point[i] != 0.0)
+        {
+            point[i] += add_number; 
+        }
+           
+    }
+       
     return point;
 }
 
