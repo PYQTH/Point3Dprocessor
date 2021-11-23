@@ -222,14 +222,14 @@ int main(int argc, char *argv[])
                point_number++;
                for (int i = 0; i < pts.size(); i++)
                 {
-                    if (i >= 4)
-                    {
-                        pts[i] = get_radomPoint(point[i], scale);
-                    }else{
-                        pts[i] = get_radomInitPoint(point[i], scale);
-                    }
-                    
-                     
+                    pts[i] = get_radomPoint(point[i], scale);
+                    // if (i >= 4)
+                    // {
+                    //     pts[i] = get_radomPoint(point[i], scale);
+                    // }else{
+                    //     pts[i] = get_radomInitPoint(point[i], scale);
+                    // }
+                                    
                 }
 
                 double error = 0;
