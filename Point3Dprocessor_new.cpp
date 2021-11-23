@@ -48,12 +48,11 @@ int main(int argc, char *argv[])
     }
     
     // 可用于输出读入的点的 坐标 和 距离 数据
-    // for (int lineNumber = 0; lineNumber < string_point_dist.size(); lineNumber++)
-    // {
-    //     cout<<"-"<<string_point_dist[lineNumber]<<endl;
-    //     cout<<lineNumber<<endl;
-    //     lineNumber++;
-    // }
+    for (int lineNumber = 0; lineNumber < string_point_dist.size(); lineNumber++)
+    {
+        cout<<"-"<<string_point_dist[lineNumber]<<endl;
+        cout<<lineNumber<<endl;
+    }
 
     // 3.read the point coordinates data from the whole data in a needed format like this: 1.0,2.0,1.0
     // and the distance data, the format is just a number, like: 155.2
@@ -64,13 +63,12 @@ int main(int argc, char *argv[])
     // 读取点的坐标（不包含距离），删掉 中括号[]，格式：1.0,2.0,3.0，是包含  逗号, 的字符串
     for (int i = 0; i < POINT_COORDINATE_LINE; i++)
     {
-        if (string_point_dist[i] != "")
+        if (string_point_dist[i].size() > 3)
         {
-            //读取前中括号到后中括号之间的坐标数据，所以要减前面三个符号加上最后一个后中括号，一共减4
-            int string_length = string_point_dist[i].length() - 4; 
+            //读取前中括号到后中括号之间的坐标数据，所以要减前面三个符号和最后一个后中括号，一共加4（由于更改后的文件导致多了一个换行符号，所以-5）
+            int string_length = string_point_dist[i].length() - 5; 
             point_string.push_back(string_point_dist[i].substr(3, string_length)); 
         }
-        
     }
     //读取各点之间的距离，仅包含数字，但是为string类型
     for (int i = POINT_COORDINATE_LINE; i < string_point_dist.size(); i++)
@@ -222,13 +220,13 @@ int main(int argc, char *argv[])
                point_number++;
                for (int i = 0; i < pts.size(); i++)
                 {
-                    pts[i] = get_radomPoint(point[i], scale);
-                    // if (i >= 4)
-                    // {
-                    //     pts[i] = get_radomPoint(point[i], scale);
-                    // }else{
-                    //     pts[i] = get_radomInitPoint(point[i], scale);
-                    // }
+                    // pts[i] = get_radomPoint(point[i], scale);
+                    if (i >= 4)
+                    {
+                        pts[i] = get_radomPoint(point[i], scale);
+                    }else{
+                        pts[i] = get_radomInitPoint(point[i], scale);
+                    }
                                     
                 }
 
