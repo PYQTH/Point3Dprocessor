@@ -65,8 +65,8 @@ int main(int argc, char *argv[])
     {
         if (string_point_dist[i].size() > 3)
         {
-            //读取前中括号到后中括号之间的坐标数据，所以要减前面三个符号和最后一个后中括号，一共加4（由于更改后的文件导致多了一个换行符号，所以-5）
-            int string_length = string_point_dist[i].length() - 5; 
+            //读取前中括号到后中括号之间的坐标数据，所以要减前面三个符号和最后一个后中括号，一共加4（由于更改后的文件导致多了一个换行符号，所以-5,但减4也可以兼容）
+            int string_length = string_point_dist[i].length() - 4; 
             point_string.push_back(string_point_dist[i].substr(3, string_length)); 
         }
     }
@@ -80,10 +80,10 @@ int main(int argc, char *argv[])
 
     // 可用于检验输出的 坐标值 和 点之间的相互 距离， 按顺序1-10，分别代表A-J，都是字符串类型
     // 距离按顺序依次代表
-    // for (int i = 0; i < point_string.size(); i++)
-    // {
-    //     cout<<point_string[i]<<endl;
-    // }
+    for (int i = 0; i < point_string.size(); i++)
+    {
+        cout<<point_string[i]<<endl;
+    }
 
     // for (int i = 0; i < distance_string.size(); i++)
     // {
@@ -128,21 +128,6 @@ int main(int argc, char *argv[])
         // cout<<endl;
         // cout<<point_temp[i]<<endl;
     }
-
-    // 由于A,B,C,D带 * 的0保持不变,把A,B,C,D中的0元素转换为const常数
-    // for (int i = 0; i < 4; i++)
-    // {
-    //     for (int j = 0; j < point[i].size(); j++)
-    //     {
-    //         if (point[i][j] == 0)
-    //         {
-    //             point[i][j] = (double const)0;
-    //         }
-            
-    //     }
-        
-    // }
-    
 
 
     // 4.根据 distance_string向量 读入并得到点的 距离矩阵 distance_matrix
