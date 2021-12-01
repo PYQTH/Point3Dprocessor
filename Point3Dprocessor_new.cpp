@@ -53,7 +53,8 @@ int main(int argc, char *argv[])
     vector<string> distance_string;
     int const POINT_COORDINATE_LINE = 13; //how many lines of point coordinate the file has
 
-    // read the point coordinate (not including distance data), and delete "[]",
+    // read the point coordinate (not including distance data), 
+    //and delete "[]",
     // and the data format is like this:1.0,2.0,3.0,is a kind of string and include ","
     for (int i = 0; i < POINT_COORDINATE_LINE; i++)
     {
